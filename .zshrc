@@ -81,6 +81,9 @@ fi
 # ============================================================================
 # Modern replacements
 if command -v eza &> /dev/null; then
+  # Set Catppuccin theme for eza
+  export EZA_CONFIG_DIR="$HOME/.dotfiles/config/eza"
+  
   alias ls="eza --icons"
   alias ll="eza -l --icons --git"
   alias la="eza -la --icons --git"
