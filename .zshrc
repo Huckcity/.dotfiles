@@ -102,20 +102,6 @@ alias gco="git checkout"
 alias gb="git branch"
 alias glog="git log --oneline --graph --decorate"
 
-# Kubernetes aliases
-alias k="kubectl"
-alias kx="kubectx"
-alias kn="kubens"
-alias kgp="kubectl get pods"
-alias kgs="kubectl get svc"
-alias kgd="kubectl get deployments"
-
-# Docker aliases
-alias d="docker"
-alias dc="docker-compose"
-alias dps="docker ps"
-alias dimg="docker images"
-
 # Common shortcuts
 alias ..="cd .."
 alias ...="cd ../.."
