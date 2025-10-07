@@ -1,0 +1,147 @@
+# config/starship.toml - Starship prompt configuration
+# Place in ~/.config/starship.toml
+
+# Get editor completions based on the config schema
+"$schema" = 'https://starship.rs/config-schema.json'
+
+# Timeout for commands
+command_timeout = 500
+
+# Format of the prompt
+format = """
+[┌─](bold green)$username$hostname$directory$git_branch$git_status$kubernetes$docker_context$terraform$aws
+[└─](bold green)$character"""
+
+# Wait 10 milliseconds for starship to check files under the current directory.
+scan_timeout = 10
+
+# Configure the prompt character
+[character]
+success_symbol = "[➜](bold green)"
+error_symbol = "[✗](bold red)"
+vimcmd_symbol = "[←](bold green)"
+
+# Directory configuration
+[directory]
+truncation_length = 3
+truncate_to_repo = true
+style = "bold cyan"
+format = "[$path]($style)[$read_only]($read_only_style) "
+read_only = " 🔒"
+
+# Git branch
+[git_branch]
+symbol = " "
+style = "bold purple"
+format = "[$symbol$branch]($style) "
+
+# Git status
+[git_status]
+style = "bold red"
+format = "([$all_status$ahead_behind]($style) )"
+conflicted = "⚔️ "
+ahead = "⇡${count} "
+behind = "⇣${count} "
+diverged = "⇕⇡${ahead_count}⇣${behind_count} "
+untracked = "?${count} "
+stashed = "📦${count} "
+modified = "!${count} "
+staged = "+${count} "
+renamed = "»${count} "
+deleted = "✘${count} "
+
+# Username
+[username]
+style_user = "bold yellow"
+style_root = "bold red"
+format = "[$user]($style) "
+disabled = false
+show_always = false
+
+# Hostname
+[hostname]
+ssh_only = true
+format = "[@$hostname](bold yellow) "
+disabled = false
+
+# AWS
+[aws]
+format = "[☁️ $profile($region)]($style) "
+style = "bold yellow"
+symbol = "☁️ "
+disabled = false
+
+[aws.region_aliases]
+us-east-1 = "use1"
+us-east-2 = "use2"
+us-west-1 = "usw1"
+us-west-2 = "usw2"
+eu-west-1 = "euw1"
+eu-west-2 = "euw2"
+
+# Kubernetes
+[kubernetes]
+format = "[⎈ $context($namespace)](bold blue) "
+disabled = false
+detect_files = ['k8s', 'Dockerfile', 'skaffold.yaml']
+detect_extensions = ['yaml', 'yml']
+
+[kubernetes.context_aliases]
+"arn:aws:eks:us-east-1:123456789012:cluster/production" = "prod"
+"arn:aws:eks:us-east-1:123456789012:cluster/staging" = "staging"
+
+# Docker
+[docker_context]
+format = "[🐳 $context](bold blue) "
+disabled = false
+detect_files = ['docker-compose.yml', 'docker-compose.yaml', 'Dockerfile']
+
+# Terraform
+[terraform]
+format = "[💠 $workspace]($style) "
+disabled = false
+detect_files = ['terraform.tfvars', '.terraform']
+detect_folders = ['.terraform']
+
+# Python
+[python]
+symbol = "🐍 "
+format = "[$symbol$pyenv_prefix($version )]($style)"
+disabled = false
+
+# Node.js
+[nodejs]
+format = "[⬢ $version](bold green) "
+disabled = false
+
+# Go
+[golang]
+format = "[🐹 $version](bold cyan) "
+disabled = false
+
+# Rust
+[rust]
+format = "[🦀 $version](bold red) "
+disabled = false
+
+# Time
+[time]
+disabled = true
+format = "[$time]($style) "
+time_format = "%T"
+utc_time_offset = "local"
+
+# Line break between prompt sections
+[line_break]
+disabled = false
+
+# Battery indicator (for laptops)
+[battery]
+full_symbol = "🔋"
+charging_symbol = "⚡"
+discharging_symbol = "💀"
+disabled = false
+
+[[battery.display]]
+threshold = 30
+style = "bold red"
