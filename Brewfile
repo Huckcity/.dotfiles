@@ -1,8 +1,6 @@
 # Brewfile - Package manifest for Homebrew
 # Install with: brew bundle
-
-# Taps
-tap "homebrew/bundle"
+# Note: homebrew/bundle is now built into Homebrew core, no tap needed
 
 # Essential CLI tools
 brew "zsh"
@@ -35,7 +33,5 @@ brew "direnv"     # Environment switcher
 brew "jenv"       # Java version manager (if needed)
 brew "pyenv"      # Python version manager
 
-# GUI Applications (optional)
-cask "iterm2"           # Better terminal
-cask "visual-studio-code"
-cask "rectangle"        # Window management
+# Fonts
+cask "font-jetbrains-mono-nerd-font"  # JetBrains Mono with icon support

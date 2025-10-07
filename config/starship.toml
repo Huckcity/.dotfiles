@@ -1,11 +1,43 @@
 # config/starship.toml - Starship prompt configuration
 # Place in ~/.config/starship.toml
+# Using Catppuccin Mocha theme
 
 # Get editor completions based on the config schema
 "$schema" = 'https://starship.rs/config-schema.json'
 
-# Timeout for commands
-command_timeout = 500
+# Catppuccin Mocha color palette
+palette = "catppuccin_mocha"
+
+[palettes.catppuccin_mocha]
+rosewater = "#f5e0dc"
+flamingo = "#f2cdcd"
+pink = "#f5c2e7"
+mauve = "#cba6f7"
+red = "#f38ba8"
+maroon = "#eba0ac"
+peach = "#fab387"
+yellow = "#f9e2af"
+green = "#a6e3a1"
+teal = "#94e2d5"
+sky = "#89dceb"
+sapphire = "#74c7ec"
+blue = "#89b4fa"
+lavender = "#b4befe"
+text = "#cdd6f4"
+subtext1 = "#bac2de"
+subtext0 = "#a6adc8"
+overlay2 = "#9399b2"
+overlay1 = "#7f849c"
+overlay0 = "#6c7086"
+surface2 = "#585b70"
+surface1 = "#45475a"
+surface0 = "#313244"
+base = "#1e1e2e"
+mantle = "#181825"
+crust = "#11111b"
+
+# Get editor completions based on the config schema
+"$schema" = 'https://starship.rs/config-schema.json'
 
 # Format of the prompt
 format = """
@@ -13,7 +45,7 @@ format = """
 [└─](bold green)$character"""
 
 # Wait 10 milliseconds for starship to check files under the current directory.
-scan_timeout = 10
+scan_timeout = "10"
 
 # Configure the prompt character
 [character]
@@ -25,14 +57,15 @@ vimcmd_symbol = "[←](bold green)"
 [directory]
 truncation_length = 3
 truncate_to_repo = true
-style = "bold cyan"
+style = "bold sapphire"
 format = "[$path]($style)[$read_only]($read_only_style) "
 read_only = " 🔒"
+read_only_style = "red"
 
 # Git branch
 [git_branch]
 symbol = " "
-style = "bold purple"
+style = "bold mauve"
 format = "[$symbol$branch]($style) "
 
 # Git status
@@ -67,7 +100,7 @@ disabled = false
 # AWS
 [aws]
 format = "[☁️ $profile($region)]($style) "
-style = "bold yellow"
+style = "bold peach"
 symbol = "☁️ "
 disabled = false
 
@@ -106,22 +139,29 @@ detect_folders = ['.terraform']
 # Python
 [python]
 symbol = "🐍 "
+style = "bold yellow"
 format = "[$symbol$pyenv_prefix($version )]($style)"
 disabled = false
 
 # Node.js
 [nodejs]
-format = "[⬢ $version](bold green) "
+symbol = "⬢ "
+style = "bold green"
+format = "[$symbol$version]($style) "
 disabled = false
 
 # Go
 [golang]
-format = "[🐹 $version](bold cyan) "
+symbol = "🐹 "
+style = "bold sapphire"
+format = "[$symbol$version]($style) "
 disabled = false
 
 # Rust
 [rust]
-format = "[🦀 $version](bold red) "
+symbol = "🦀 "
+style = "bold peach"
+format = "[$symbol$version]($style) "
 disabled = false
 
 # Time
