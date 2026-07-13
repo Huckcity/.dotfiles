@@ -47,6 +47,7 @@ link_file() {
 
 # Symlink dotfiles
 link_file "$DOTFILES_DIR/.zshrc" "$HOME/.zshrc"
+link_file "$DOTFILES_DIR/.zshrc.work" "$HOME/.zshrc.work"
 link_file "$DOTFILES_DIR/.tmux.conf" "$HOME/.tmux.conf"
 link_file "$DOTFILES_DIR/config/starship.toml" "$HOME/.config/starship.toml"
 
