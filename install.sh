@@ -80,7 +80,9 @@ elif [ "$OS" = "linux" ]; then
         # Install eza (modern ls replacement)
         if ! command -v eza &> /dev/null; then
             echo "  Installing eza..."
-            if command -v cargo &> /dev/null; then
+            if command -v dnf &> /dev/null; then
+                sudo dnf install -y eza
+            elif command -v cargo &> /dev/null; then
                 cargo install eza
             else
                 echo "  ⚠️  cargo not found, skipping eza. Install Rust or download from https://github.com/eza-community/eza"
