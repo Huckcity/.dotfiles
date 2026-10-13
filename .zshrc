@@ -112,6 +112,9 @@ alias ....="cd ../../.."
 alias tf="terraform"
 alias reload="source ~/.zshrc"
 
+# ~/dev tracker: rescan every project and open the dashboard
+alias dev="python3 ~/dev/.tracker/scan.py --live --open"
+
 # ============================================================================
 # Functions
 # ============================================================================
@@ -132,6 +135,8 @@ if command -v starship &> /dev/null; then
   eval "$(starship init zsh)"
 fi
 
+export PATH=$PATH:$HOME/.local/bin
+
 # ============================================================================
 # Work-specific Configuration
 # ============================================================================
@@ -143,3 +148,14 @@ fi
 # ============================================================================
 # Source local config if it exists (for machine-specific settings)
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
+
+# bun completions
+[ -s "/home/adam/.bun/_bun" ] && source "/home/adam/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
+# Added by flyctl installer
+export FLYCTL_INSTALL="/home/adam/.fly"
+export PATH="$FLYCTL_INSTALL/bin:$PATH"
