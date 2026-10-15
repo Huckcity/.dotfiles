@@ -3,7 +3,7 @@
 # Note: homebrew/bundle is now built into Homebrew core, no tap needed
 
 # Essential CLI tools
-brew "iterm2"
+# brew "iterm2"
 brew "zsh"
 brew "tmux"
 brew "git"

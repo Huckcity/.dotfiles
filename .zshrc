@@ -7,6 +7,10 @@ export EDITOR="vim"
 export VISUAL="vim"
 export LANG="en_US.UTF-8"
 
+# Real location of this repo, resolved through the ~/.zshrc symlink, so paths
+# below work wherever the dotfiles are cloned (~/.dotfiles, ~/dev/.dotfiles, ...)
+export DOTFILES_DIR="${${(%):-%N}:A:h}"
+
 # Add Homebrew to PATH (Apple Silicon)
 if [[ -f "/opt/homebrew/bin/brew" ]]; then
   eval "$(/opt/homebrew/bin/brew shellenv)"
@@ -82,7 +86,7 @@ fi
 # Modern replacements
 if command -v eza &> /dev/null; then
   # Set Catppuccin theme for eza
-  export EZA_CONFIG_DIR="$HOME/dev/.dotfiles/config/eza"
+  export EZA_CONFIG_DIR="$DOTFILES_DIR/config/eza"
   
   alias ls="eza --icons"
   alias ll="eza -l --icons --git"
@@ -112,8 +116,8 @@ alias ....="cd ../../.."
 alias tf="terraform"
 alias reload="source ~/.zshrc"
 
-# ~/dev tracker: rescan every project and open the dashboard
-alias dev="python3 ~/dev/.tracker/scan.py --live --open"
+# ~/dev tracker: rescan every project and open the dashboard (only where it exists)
+[[ -f "$HOME/dev/.tracker/scan.py" ]] && alias dev="python3 ~/dev/.tracker/scan.py --live --open"
 
 # ============================================================================
 # Functions
@@ -149,13 +153,15 @@ export PATH=$PATH:$HOME/.local/bin
 # Source local config if it exists (for machine-specific settings)
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
 
-# bun completions
-[ -s "/home/adam/.bun/_bun" ] && source "/home/adam/.bun/_bun"
+# bun (only if installed)
+if [[ -d "$HOME/.bun" ]]; then
+  export BUN_INSTALL="$HOME/.bun"
+  export PATH="$BUN_INSTALL/bin:$PATH"
+  [[ -s "$BUN_INSTALL/_bun" ]] && source "$BUN_INSTALL/_bun"
+fi
 
-# bun
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
-
-# Added by flyctl installer
-export FLYCTL_INSTALL="/home/adam/.fly"
-export PATH="$FLYCTL_INSTALL/bin:$PATH"
+# flyctl (only if installed)
+if [[ -d "$HOME/.fly" ]]; then
+  export FLYCTL_INSTALL="$HOME/.fly"
+  export PATH="$FLYCTL_INSTALL/bin:$PATH"
+fi
