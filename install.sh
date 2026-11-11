@@ -138,6 +138,8 @@ link_file() {
 link_file "$DOTFILES_DIR/.zshrc" "$HOME/.zshrc"
 link_file "$DOTFILES_DIR/.zshrc.work" "$HOME/.zshrc.work"
 link_file "$DOTFILES_DIR/.tmux.conf" "$HOME/.tmux.conf"
+mkdir -p "$HOME/.omp/agent/extensions"
+link_file "$DOTFILES_DIR/omp/extensions/tmux-state.ts" "$HOME/.omp/agent/extensions/tmux-state.ts"
 link_file "$DOTFILES_DIR/config/starship.toml" "$HOME/.config/starship.toml"
 
 # Install TPM (Tmux Plugin Manager) if not already installed
