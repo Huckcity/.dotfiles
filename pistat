@@ -1,0 +1,80 @@
+#!/bin/sh
+# pistat: every tmux window of this session on one screen, short enough to read at a glance
+# (or through a camera): number, name, state and the last "recap:" line of its agent session.
+#
+#   pistat              the board
+#   pistat WINDOW [N]   the last N non-blank lines (default: what fits) of that window, by name or number
+#
+# State comes from @pi_state (set by omp/extensions/tmux-state.ts: ASK / BUSY / DONE / idle);
+# windows without it show tmux's own flags (output = new output since visited, quiet = silent).
+# Run it from inside tmux. Reads panes with capture-pane; changes nothing.
+
+[ -n "$TMUX" ] || { echo "pistat: run inside tmux" >&2; exit 1; }
+cols=$(tput cols 2>/dev/null) || cols=100
+rows=$(tput lines 2>/dev/null) || rows=40
+wide=$((cols - 6))
+[ "$wide" -lt 30 ] && wide=30
+
+if [ -t 1 ]; then
+  esc=$(printf '\033')
+  red="${esc}[1;31m" yel="${esc}[1;33m" grn="${esc}[1;32m" dim="${esc}[2m" bold="${esc}[1m" off="${esc}[0m"
+else
+  red='' yel='' grn='' dim='' bold='' off=''
+fi
+
+if [ $# -ge 1 ]; then
+  out=$(tmux capture-pane -p -J -t ":$1" -S -600 2>/dev/null) || { echo "pistat: no window '$1'" >&2; exit 1; }
+  printf '%s\n' "$out" | grep -v '^[[:space:]]*$' | tail -n "${2:-$((rows - 3))}" \
+    | fold -s -w "$((cols - 1))" | tail -n "$((rows - 2))"
+  exit 0
+fi
+
+sep=$(printf '\037')
+wins=$(tmux list-windows -F "#{window_index}${sep}#{window_name}${sep}#{@pi_state}${sep}#{window_active}${sep}#{window_activity_flag}${sep}#{window_silence_flag}${sep}#{pane_id}")
+count=$(printf '%s\n' "$wins" | wc -l | tr -d ' ')
+per=$(( (rows - 3) / count - 1 ))          # text lines each window may use
+[ "$per" -lt 1 ] && per=1
+[ "$per" -gt 5 ] && per=5
+
+clear 2>/dev/null
+printf '%s\n' "${bold}pistat $(date '+%H:%M:%S')  ${count} windows${off}"
+printf '%s\n' "$wins" | while IFS="$sep" read -r idx name st active act sil pane; do
+  case "$st" in
+    ask)  label="${red}ASK${off}" ;;
+    busy) label="${yel}BUSY${off}" ;;
+    done) label="${grn}DONE${off}" ;;
+    idle) label="${dim}idle${off}" ;;
+    *)    if [ "$sil" = 1 ]; then label="${grn}quiet${off}"
+          elif [ "$act" = 1 ]; then label="${yel}output${off}"
+          else label="${dim}-${off}"; fi ;;
+  esac
+  [ "$active" = 1 ] && here=" (here)" || here=
+  printf '%s\n' "${bold}$(printf '%2s %-14s' "$idx" "$name")${off} ${label}${here}"
+  [ "$active" = 1 ] && continue
+  text=$(tmux capture-pane -p -J -t "$pane" -S -400 2>/dev/null)
+  if [ "$st" = ask ]; then
+    # a question is waiting: the most recent lines are the question, and they get room
+    room=$per; [ "$room" -lt 4 ] && room=4
+    printf '%s\n' "$text" | grep '[A-Za-z0-9]' | tail -n "$room" | sed 's/^[[:space:]]*//' \
+      | fold -s -w "$wide" | tail -n "$room" | sed 's/^/     /'
+    continue
+  fi
+  # the last recap, with the lines the TUI wrapped it onto (up to a blank line or a border)
+  body=$(printf '%s\n' "$text" | awk '
+    /recap:/ { buf = $0; grab = 5; next }
+    grab > 0 && !/[A-Za-z0-9]/ { grab = 0; next }
+    grab > 0 { buf = buf " " $0; grab-- }
+    END { sub(/^.*recap:[ \t]*/, "", buf); gsub(/[ \t]+/, " ", buf); print buf }')
+  [ -n "$body" ] || body=$(printf '%s\n' "$text" | grep '[A-Za-z0-9]' | tail -n 1 | sed 's/^[[:space:]]*//')
+  [ -n "$body" ] || continue
+  need=$(printf '%s\n' "$body" | fold -s -w "$wide" | wc -l | tr -d ' ')
+  case "$body" in
+    *"Next:"*)
+      if [ "$need" -gt "$per" ]; then          # too long: keep the "Next:" clause, trim the summary
+        [ "$per" -gt 1 ] && printf '%s\n' "${body%%Next:*}" | fold -s -w "$wide" | head -n "$((per - 1))" | sed 's/^/     /'
+        printf '%s\n' "Next:${body#*Next:}" | fold -s -w "$wide" | head -n 1 | sed 's/^/     /'
+        continue
+      fi ;;
+  esac
+  printf '%s\n' "$body" | fold -s -w "$wide" | head -n "$per" | sed 's/^/     /'
+done
