@@ -10,8 +10,10 @@
 # Run it from inside tmux. Reads panes with capture-pane; changes nothing.
 
 [ -n "$TMUX" ] || { echo "pistat: run inside tmux" >&2; exit 1; }
-cols=$(tput cols 2>/dev/null) || cols=100
-rows=$(tput lines 2>/dev/null) || rows=40
+# size from tmux: tput inside $(...) with stderr closed has no terminal and answers 80x24
+size=$(tmux display-message -p '#{pane_width} #{pane_height}' 2>/dev/null)
+cols=${size% *} rows=${size#* }
+case "$cols$rows" in ''|*[!0-9]*) cols=100 rows=40 ;; esac
 wide=$((cols - 6))
 [ "$wide" -lt 30 ] && wide=30
 
@@ -30,7 +32,9 @@ if [ $# -ge 1 ]; then
 fi
 
 sep=$(printf '\037')
-wins=$(tmux list-windows -F "#{window_index}${sep}#{window_name}${sep}#{@pi_state}${sep}#{window_active}${sep}#{window_activity_flag}${sep}#{window_silence_flag}${sep}#{pane_id}")
+wins=$(tmux list-windows -F "#{window_index}${sep}#{window_name}${sep}#{@pi_state}${sep}#{window_active}${sep}#{window_activity_flag}${sep}#{window_silence_flag}${sep}#{pane_id}${sep}#{automatic-rename}")
+# the agent TUI's own frame and footer (box-drawing lines) are not what the session said
+chrome() { grep -v -F -e '╭' -e '╰' -e '╮' -e '╯' -e '│' -e '─' -e '━' -e '┃'; }
 count=$(printf '%s\n' "$wins" | wc -l | tr -d ' ')
 per=$(( (rows - 3) / count - 1 ))          # text lines each window may use
 [ "$per" -lt 1 ] && per=1
@@ -38,7 +42,9 @@ per=$(( (rows - 3) / count - 1 ))          # text lines each window may use
 
 clear 2>/dev/null
 printf '%s\n' "${bold}pistat $(date '+%H:%M:%S')  ${count} windows${off}"
-printf '%s\n' "$wins" | while IFS="$sep" read -r idx name st active act sil pane; do
+printf '%s\n' "$wins" | while IFS="$sep" read -r idx name st active act sil pane auto; do
+  # this script is the running command here, so an auto-named window reads "sh": show the shell
+  [ "$active" = 1 ] && [ "$auto" = 1 ] && name=${SHELL##*/}
   case "$st" in
     ask)  label="${red}ASK${off}" ;;
     busy) label="${yel}BUSY${off}" ;;
@@ -65,16 +71,25 @@ printf '%s\n' "$wins" | while IFS="$sep" read -r idx name st active act sil pane
     grab > 0 && !/[A-Za-z0-9]/ { grab = 0; next }
     grab > 0 { buf = buf " " $0; grab-- }
     END { sub(/^.*recap:[ \t]*/, "", buf); gsub(/[ \t]+/, " ", buf); print buf }')
-  [ -n "$body" ] || body=$(printf '%s\n' "$text" | grep '[A-Za-z0-9]' | tail -n 1 | sed 's/^[[:space:]]*//')
-  [ -n "$body" ] || continue
+  last=$(printf '%s\n' "$text" | chrome | grep '[A-Za-z0-9]' | tail -n 1 | sed 's/^[[:space:]]*//')
+  if [ -z "$body" ]; then
+    # no recap: the last thing it said, as many lines as fit
+    room=$per; [ "$room" -gt 3 ] && room=3
+    printf '%s\n' "$text" | chrome | grep '[A-Za-z0-9]' | tail -n "$room" | sed 's/^[[:space:]]*//' \
+      | fold -s -w "$wide" | tail -n "$room" | sed 's/^/     /'
+    continue
+  fi
+  # a question asked after the recap is what matters most: show it under the recap
+  case "$last" in *\?) asked=$last ;; *) asked= ;; esac
   need=$(printf '%s\n' "$body" | fold -s -w "$wide" | wc -l | tr -d ' ')
   case "$body" in
     *"Next:"*)
       if [ "$need" -gt "$per" ]; then          # too long: keep the "Next:" clause, trim the summary
         [ "$per" -gt 1 ] && printf '%s\n' "${body%%Next:*}" | fold -s -w "$wide" | head -n "$((per - 1))" | sed 's/^/     /'
         printf '%s\n' "Next:${body#*Next:}" | fold -s -w "$wide" | head -n 1 | sed 's/^/     /'
-        continue
+        body=
       fi ;;
   esac
-  printf '%s\n' "$body" | fold -s -w "$wide" | head -n "$per" | sed 's/^/     /'
+  [ -n "$body" ] && printf '%s\n' "$body" | fold -s -w "$wide" | head -n "$per" | sed 's/^/     /'
+  [ -n "$asked" ] && printf '%s\n' "${red}asks:${off} $asked" | fold -s -w "$wide" | head -n 2 | sed 's/^/     /'
 done
